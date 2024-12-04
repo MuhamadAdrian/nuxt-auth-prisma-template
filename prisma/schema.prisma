@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model StudentClass {
+  id         Int       @id @default(autoincrement())
+  code       String    @db.VarChar(5)
+  name       String    @db.VarChar(25)
+  created_at DateTime? @default(now())
+  updated_at DateTime?
+  student    student[]
+
+  @@map("student_classes")
+}
+
+model student {
+  id                       Int                     @id @default(autoincrement())
+  name                     String                  @db.VarChar(150)
+  gender                   student_gender?         @default(Unknown)
+  place_of_birth           String?                 @db.VarChar(50)
+  date_of_birth            DateTime?
+  family_order             String?                 @db.Char(2)
+  number_of_siblings       String?                 @db.Char(2)
+  previous_school          String?                 @db.VarChar(100)
+  last_education           student_last_education? @default(Unknown)
+  phone_number             String?                 @db.VarChar(16)
+  address                  String?                 @db.Text
+  neighborhood_association String?
+  citizens_association     String?
+  student_class_id         Int?
+  created_at               DateTime?               @default(now())
+  updated_at               DateTime?
+  student_classes          StudentClass?           @relation(fields: [student_class_id], references: [id], map: "Student_student_class_id_fkey")
+
+  @@index([student_class_id], map: "Student_student_class_id_fkey")
+}
+
+enum student_gender {
+  Laki_Laki
+  Perempuan
+  Unknown
+}
+
+enum student_last_education {
+  SD
+  SMP
+  SMA_SEDERAJAT
+  Sarjana
+  Magister
+  Doktor
+  Unknown
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password      String
+  name          String?
+  user_sessions UserSessions[]
+  created_at    DateTime?      @default(now())
+  updated_at    DateTime?
+}
+
+model UserSessions {
+  id            Int       @id @default(autoincrement())
+  token         String    @db.Text
+  refresh_token String    @db.Text
+  ip            String?
+  device_name   String?
+  user_agent    String?
+  os            String?
+  user          User      @relation(fields: [user_id], references: [id])
+  user_id       Int
+  is_active     Boolean   @default(false)
+  created_at    DateTime? @default(now())
+  updated_at    DateTime?
+
+  @@map("user_sessions")
+}
